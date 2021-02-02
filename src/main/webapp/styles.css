@@ -13,3 +13,7 @@
 .color-red {
     color:darkred;
 }
+
+.fix-right {
+    margin-left:auto;
+}
