@@ -6,6 +6,8 @@
     var users
     var userService
 
+    jQuery(main);
+
 
     function main() {
         $usernameFld = $("#usernameFld")
@@ -18,29 +20,43 @@
         $editBtn = jQuery(".wbdv-update")
         $removeBtn = jQuery(".wbdv-remove")
 
-        $createBtn.click(createUser)
-        $editBtn.click(updateUser)
-
-        $tbody = jQuery("#wbdv-tbody")
-
         userService = new AdminUserServiceClient()
 
-        users = [
-            // {username: "", password: "", firstName: "", lastName: "", role: ""}
-        ]
+        users = []
+
+        $createBtn.click(() => {
+            createUser({
+                username: $usernameFld.val(),
+                password: $passwordFld.val(),
+                firstName: $firstNameFld.val(),
+                lastName: $lastNameFld.val(),
+                role: $roleFld.val()
+            })
+        })
+        $editBtn.click(updateUser)
+        $tbody = jQuery(".wbdv-tbody")
+
+        userService.findAllUsers()
+            .then(function (actualUserFromSever) {
+                users = actualUserFromSever
+                renderUsers(users)
+            })
+
+
+
     }
 
-    function createUser() {
-        var newUser = {
-            username: $usernameFld.val(),
-            password: $passwordFld.val(),
-            firstName: $firstNameFld.val(),
-            lastName: $lastNameFld.val(),
-            role: $roleFld.val()
-        }
+    function createUser(user) {
+        // var newUser = {
+        //     username: $usernameFld.val(),
+        //     password: $passwordFld.val(),
+        //     firstName: $firstNameFld.val(),
+        //     lastName: $lastNameFld.val(),
+        //     role: $roleFld.val()
+        // }
 
         userService
-            .createUser(newUser)
+            .createUser(user)
             .then(function (actualUser) {
                 users.push(actualUser)
                 renderUsers(users)
@@ -51,22 +67,33 @@
 
     }
 
-    function deleteUser() {
+    function deleteUser(event) {
+        var deleteBtn = jQuery(event.target)
+        var theClass = deleteBtn.attr("class")
+        var theIndex = deleteBtn.attr("id")
+        var theId = users[theIndex]._id
+        console.log(theIndex)
+        userService.deleteUser(theId)
+            .then(function (status) {
+                users.splice(theIndex, 1)
+                renderUsers(users)
+            })
 
     }
 
     function renderUsers(users) {
         $tbody.empty()
-        for(var i=0; i<users.length; i++) {
+        console.log(users)
+        for (var i = 0; i < users.length; i++) {
             var user = users[i]
             $tbody
                 .prepend(`
                 <tr>
-                    <td>${users.username}</td>
-                    <td>${users.password}</td>
-                    <td>${users.firstName}</td>
-                    <td>${users.lastName}</td>
-                    <td>${users.role}</td>
+                    <td>${user.username}</td>
+                     <td>${""}</td>
+                    <td>${user.firstName}</td>
+                    <td>${user.lastName}</td>
+                    <td>${user.role}</td>
                     <td>
                         <i id="${i}" class="fa-2x fa fa-times wbdv-remove"></i>
                         <i id="${user._id}" class="fa-2x fa fa-pencil wbdv-edit"></i>
@@ -79,6 +106,4 @@
         jQuery(".wbdv-edit").click(updateUser)
 
     }
-
-    $(main);
 })();
