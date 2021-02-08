@@ -47,14 +47,6 @@
     }
 
     function createUser(user) {
-        // var newUser = {
-        //     username: $usernameFld.val(),
-        //     password: $passwordFld.val(),
-        //     firstName: $firstNameFld.val(),
-        //     lastName: $lastNameFld.val(),
-        //     role: $roleFld.val()
-        // }
-
         userService
             .createUser(user)
             .then(function (actualUser) {
