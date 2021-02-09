@@ -1,12 +1,10 @@
 (function () {
     var $usernameFld, $passwordFld;
     var $firstNameFld, $lastNameFld, $roleFld;
-    var $createBtn, $editBtn, $removeBtn;
-    var $userRowTemplate, $tbody;
+    var $createBtn, $editBtn, $updateBtn, $removeBtn;
+    var $userRowTemplate, tbody;
     var users
     var userService
-
-    jQuery(main);
 
 
     function main() {
@@ -17,46 +15,70 @@
         $roleFld = $("#roleFld")
 
         $createBtn = jQuery(".wbdv-create")
-        $editBtn = jQuery(".wbdv-update")
+        $editBtn = jQuery(".wbdv-edit")
+        $updateBtn = jQuery(".wbdv-update")
         $removeBtn = jQuery(".wbdv-remove")
 
-        userService = new AdminUserServiceClient()
+        tbody = jQuery(".wbdv-tbody")
 
+        userService = new AdminUserServiceClient()
         users = []
 
-        $createBtn.click(() => {
-            createUser({
-                username: $usernameFld.val(),
-                password: $passwordFld.val(),
-                firstName: $firstNameFld.val(),
-                lastName: $lastNameFld.val(),
-                role: $roleFld.val()
-            })
-        })
-        $editBtn.click(updateUser)
-        $tbody = jQuery(".wbdv-tbody")
+        $updateBtn.click(updateUser)
+        $createBtn.click(createUser)
+
 
         userService.findAllUsers()
-            .then(function (actualUserFromSever) {
-                users = actualUserFromSever
+            .then(function (actualUsersFromSever) {
+                users = actualUsersFromSever
                 renderUsers(users)
             })
-
-
-
     }
 
-    function createUser(user) {
+    function createUser() {
+        var newUser = {
+            username: $usernameFld.val(),
+            password: $passwordFld.val(),
+            firstName: $firstNameFld.val(),
+            lastName: $lastNameFld.val(),
+            role: $roleFld.val()
+        }
         userService
-            .createUser(user)
+            .createUser(newUser)
             .then(function (actualUser) {
                 users.push(actualUser)
                 renderUsers(users)
             })
     }
 
+    var selectedUser = null
+    function selectUser(event) {
+        var selectBtn = jQuery(event.target)
+        var theId = selectBtn.attr("id")
+        console.log(theId)
+        selectedUser = users.find(user => user._id === theId)
+        console.log(selectedUser)
+        $usernameFld.val(selectedUser.username)
+        $passwordFld.val(selectedUser.password)
+        $firstNameFld.val(selectedUser.firstName)
+        $lastNameFld.val(selectedUser.lastName)
+        $roleFld.val(selectedUser.role)
+    }
     function updateUser() {
-
+        console.log(selectedUser)
+        console.log($usernameFld.val())
+        console.log($passwordFld.val())
+        selectedUser.username = $usernameFld.val()
+        selectedUser.password = $passwordFld.val()
+        selectedUser.firstName = $firstNameFld.val()
+        selectedUser.lastName = $lastNameFld.val()
+        selectedUser.role = $roleFld.val()
+        userService.updateUser(selectedUser._id, selectedUser)
+            .then(status => {
+                var index = users.findIndex(user => user._id === selectedUser._id)
+                users[index] = selectedUser
+                renderUsers(users)
+            })
     }
 
     function deleteUser(event) {
@@ -74,15 +96,14 @@
     }
 
     function renderUsers(users) {
-        $tbody.empty()
-        console.log(users)
+        tbody.empty()
         for (var i = 0; i < users.length; i++) {
             var user = users[i]
-            $tbody
+            tbody
                 .prepend(`
                 <tr>
                     <td>${user.username}</td>
-                     <td>${""}</td>
+                     <td>&nbsp;</td>
                     <td>${user.firstName}</td>
                     <td>${user.lastName}</td>
                     <td>${user.role}</td>
@@ -94,8 +115,15 @@
                    
             `)
         }
+        $usernameFld.val("")
+        $passwordFld.val("")
+        $firstNameFld.val("")
+        $lastNameFld.val("")
+        $roleFld.val("FACULTY")
         jQuery(".wbdv-remove").click(deleteUser)
-        jQuery(".wbdv-edit").click(updateUser)
+        jQuery(".wbdv-edit").click(selectUser)
 
     }
+
+    $(main);
 })();
